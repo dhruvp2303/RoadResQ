@@ -1,0 +1,262 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  PROVIDER
+  ADMIN
+}
+
+enum IncidentStatus {
+  CREATED
+  CLASSIFIED
+  MATCHING
+  ASSIGNED
+  EN_ROUTE
+  ARRIVED
+  SERVICE
+  PAYMENT
+  CLOSED
+  CANCELLED
+}
+
+enum BreakdownType {
+  FLAT_TYRE
+  DEAD_BATTERY
+  OUT_OF_FUEL
+  OVERHEATING
+  MECHANICAL
+  TOWING
+  DONT_KNOW
+}
+
+enum SeverityLevel {
+  LOW
+  MEDIUM
+  CRITICAL
+}
+
+enum ProviderStatus {
+  AVAILABLE
+  BUSY
+  OFFLINE
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  SUSPENDED
+  REJECTED
+}
+
+model User {
+  id                String         @id @default(uuid())
+  email             String         @unique
+  passwordHash      String
+  name              String
+  phone             String
+  role              Role           @default(USER)
+  avatarUrl         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  vehicles          Vehicle[]
+  incidents         Incident[]
+  notifications     Notification[]
+
+  @@map("users")
+}
+
+model Vehicle {
+  id           String    @id @default(uuid())
+  userId       String
+  make         String
+  model        String
+  year         Int
+  plateNumber  String    @unique
+  color        String
+  type         String
+  fuelType     String?
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  incidents    Incident[]
+
+  @@map("vehicles")
+}
+
+model Provider {
+  id                 String             @id @default(uuid())
+  email              String             @unique
+  passwordHash       String
+  name               String
+  phone              String
+  avatarUrl          String?
+  vehicleType        String
+  vehiclePlate       String
+  rating             Float              @default(5.0)
+  jobsCompleted      Int                @default(0)
+  earningsTotal      Float              @default(0.0)
+  status             ProviderStatus     @default(OFFLINE)
+  verificationStatus VerificationStatus @default(VERIFIED)
+  currentLat         Float
+  currentLng         Float
+  createdAt          DateTime           @default(now())
+
+  capabilities       ProviderCapability[]
+  assignments        IncidentAssignment[]
+  trackingUpdates    TrackingUpdate[]
+  reviews            Review[]
+
+  @@map("providers")
+}
+
+model ProviderCapability {
+  id           String        @id @default(uuid())
+  providerId   String
+  skillType    BreakdownType
+  baseRate     Float
+
+  provider     Provider      @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@map("provider_capabilities")
+}
+
+model Incident {
+  id             String         @id
+  userId         String
+  vehicleId      String
+  breakdownType  BreakdownType
+  severity       SeverityLevel  @default(MEDIUM)
+  latitude       Float
+  longitude      Float
+  address        String
+  landmark       String?
+  notes          String?
+  status         IncidentStatus @default(CREATED)
+  safetyPin      String
+  etaMinutes     Int            @default(15)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user           User           @relation(fields: [userId], references: [id])
+  vehicle        Vehicle        @relation(fields: [vehicleId], references: [id])
+  assignments    IncidentAssignment[]
+  tracking       TrackingUpdate[]
+  services       IncidentService[]
+  invoice        Invoice?
+  payment        Payment?
+  review         Review?
+
+  @@map("incidents")
+}
+
+model IncidentAssignment {
+  id           String    @id @default(uuid())
+  incidentId   String
+  providerId   String
+  status       String    @default("PENDING") // PENDING, ACCEPTED, DECLINED, TIMEOUT
+  responseSecs Int?
+  createdAt    DateTime  @default(now())
+
+  incident     Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  provider     Provider  @relation(fields: [providerId], references: [id])
+
+  @@map("incident_assignments")
+}
+
+model TrackingUpdate {
+  id           String    @id @default(uuid())
+  incidentId   String
+  providerId   String
+  latitude     Float
+  longitude    Float
+  speed        Float?
+  heading      Float?
+  recordedAt   DateTime  @default(now())
+
+  incident     Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  provider     Provider  @relation(fields: [providerId], references: [id])
+
+  @@map("tracking_updates")
+}
+
+model IncidentService {
+  id           String    @id @default(uuid())
+  incidentId   String
+  serviceName  String
+  unitPrice    Float
+  quantity     Int       @default(1)
+  total        Float
+
+  incident     Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("services")
+}
+
+model Invoice {
+  id           String    @id
+  incidentId   String    @unique
+  baseFee      Float
+  labourFee    Float
+  partsFee     Float     @default(0.0)
+  tax          Float
+  discount     Float     @default(0.0)
+  total        Float
+  isPaid       Boolean   @default(false)
+  issuedAt     DateTime  @default(now())
+
+  incident     Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+model Payment {
+  id             String    @id @default(uuid())
+  incidentId     String    @unique
+  amount         Float
+  gateway        String    // RAZORPAY, STRIPE, CASH
+  transactionRef String    @unique
+  status         String    @default("SUCCESS")
+  paidAt         DateTime  @default(now())
+
+  incident       Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Review {
+  id           String    @id @default(uuid())
+  incidentId   String    @unique
+  providerId   String
+  rating       Int
+  feedback     String?
+  tags         String?
+  tipAmount    Float     @default(0.0)
+  createdAt    DateTime  @default(now())
+
+  incident     Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  provider     Provider  @relation(fields: [providerId], references: [id])
+
+  @@map("reviews")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("INFO")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}

@@ -1,0 +1,158 @@
+-- RoadResQ Initial MySQL Schema Migration
+-- 12-Table Emergency Telematics & Roadside Assistance Model
+
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(191) PRIMARY KEY,
+    email VARCHAR(191) UNIQUE NOT NULL,
+    passwordHash VARCHAR(191) NOT NULL,
+    name VARCHAR(191) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    role ENUM('USER', 'PROVIDER', 'ADMIN') DEFAULT 'USER',
+    avatarUrl TEXT,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS vehicles (
+    id VARCHAR(191) PRIMARY KEY,
+    userId VARCHAR(191) NOT NULL,
+    make VARCHAR(100) NOT NULL,
+    model VARCHAR(100) NOT NULL,
+    year INT NOT NULL,
+    plateNumber VARCHAR(50) UNIQUE NOT NULL,
+    color VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    fuelType VARCHAR(50),
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS providers (
+    id VARCHAR(191) PRIMARY KEY,
+    email VARCHAR(191) UNIQUE NOT NULL,
+    passwordHash VARCHAR(191) NOT NULL,
+    name VARCHAR(191) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    avatarUrl TEXT,
+    vehicleType VARCHAR(100) NOT NULL,
+    vehiclePlate VARCHAR(50) NOT NULL,
+    rating DOUBLE DEFAULT 5.0,
+    jobsCompleted INT DEFAULT 0,
+    earningsTotal DOUBLE DEFAULT 0.0,
+    status ENUM('AVAILABLE', 'BUSY', 'OFFLINE') DEFAULT 'OFFLINE',
+    verificationStatus ENUM('PENDING', 'VERIFIED', 'SUSPENDED', 'REJECTED') DEFAULT 'VERIFIED',
+    currentLat DOUBLE NOT NULL,
+    currentLng DOUBLE NOT NULL,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS provider_capabilities (
+    id VARCHAR(191) PRIMARY KEY,
+    providerId VARCHAR(191) NOT NULL,
+    skillType ENUM('FLAT_TYRE', 'DEAD_BATTERY', 'OUT_OF_FUEL', 'OVERHEATING', 'MECHANICAL', 'TOWING', 'DONT_KNOW') NOT NULL,
+    baseRate DOUBLE NOT NULL,
+    FOREIGN KEY (providerId) REFERENCES providers(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS incidents (
+    id VARCHAR(191) PRIMARY KEY,
+    userId VARCHAR(191) NOT NULL,
+    vehicleId VARCHAR(191) NOT NULL,
+    breakdownType ENUM('FLAT_TYRE', 'DEAD_BATTERY', 'OUT_OF_FUEL', 'OVERHEATING', 'MECHANICAL', 'TOWING', 'DONT_KNOW') NOT NULL,
+    severity ENUM('LOW', 'MEDIUM', 'CRITICAL') DEFAULT 'MEDIUM',
+    latitude DOUBLE NOT NULL,
+    longitude DOUBLE NOT NULL,
+    address TEXT NOT NULL,
+    landmark VARCHAR(191),
+    notes TEXT,
+    status ENUM('CREATED', 'CLASSIFIED', 'MATCHING', 'ASSIGNED', 'EN_ROUTE', 'ARRIVED', 'SERVICE', 'PAYMENT', 'CLOSED', 'CANCELLED') DEFAULT 'CREATED',
+    safetyPin VARCHAR(10) NOT NULL,
+    etaMinutes INT DEFAULT 15,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id),
+    FOREIGN KEY (vehicleId) REFERENCES vehicles(id)
+);
+
+CREATE TABLE IF NOT EXISTS incident_assignments (
+    id VARCHAR(191) PRIMARY KEY,
+    incidentId VARCHAR(191) NOT NULL,
+    providerId VARCHAR(191) NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING',
+    responseSecs INT,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (incidentId) REFERENCES incidents(id) ON DELETE CASCADE,
+    FOREIGN KEY (providerId) REFERENCES providers(id)
+);
+
+CREATE TABLE IF NOT EXISTS tracking_updates (
+    id VARCHAR(191) PRIMARY KEY,
+    incidentId VARCHAR(191) NOT NULL,
+    providerId VARCHAR(191) NOT NULL,
+    latitude DOUBLE NOT NULL,
+    longitude DOUBLE NOT NULL,
+    speed DOUBLE,
+    heading DOUBLE,
+    recordedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (incidentId) REFERENCES incidents(id) ON DELETE CASCADE,
+    FOREIGN KEY (providerId) REFERENCES providers(id)
+);
+
+CREATE TABLE IF NOT EXISTS services (
+    id VARCHAR(191) PRIMARY KEY,
+    incidentId VARCHAR(191) NOT NULL,
+    serviceName VARCHAR(191) NOT NULL,
+    unitPrice DOUBLE NOT NULL,
+    quantity INT DEFAULT 1,
+    total DOUBLE NOT NULL,
+    FOREIGN KEY (incidentId) REFERENCES incidents(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS invoices (
+    id VARCHAR(191) PRIMARY KEY,
+    incidentId VARCHAR(191) UNIQUE NOT NULL,
+    baseFee DOUBLE NOT NULL,
+    labourFee DOUBLE NOT NULL,
+    partsFee DOUBLE DEFAULT 0.0,
+    tax DOUBLE NOT NULL,
+    discount DOUBLE DEFAULT 0.0,
+    total DOUBLE NOT NULL,
+    isPaid BOOLEAN DEFAULT FALSE,
+    issuedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (incidentId) REFERENCES incidents(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+    id VARCHAR(191) PRIMARY KEY,
+    incidentId VARCHAR(191) UNIQUE NOT NULL,
+    amount DOUBLE NOT NULL,
+    gateway VARCHAR(50) NOT NULL,
+    transactionRef VARCHAR(191) UNIQUE NOT NULL,
+    status VARCHAR(50) DEFAULT 'SUCCESS',
+    paidAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (incidentId) REFERENCES incidents(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS reviews (
+    id VARCHAR(191) PRIMARY KEY,
+    incidentId VARCHAR(191) UNIQUE NOT NULL,
+    providerId VARCHAR(191) NOT NULL,
+    rating INT NOT NULL,
+    feedback TEXT,
+    tags TEXT,
+    tipAmount DOUBLE DEFAULT 0.0,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (incidentId) REFERENCES incidents(id),
+    FOREIGN KEY (providerId) REFERENCES providers(id)
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id VARCHAR(191) PRIMARY KEY,
+    userId VARCHAR(191) NOT NULL,
+    title VARCHAR(191) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50) DEFAULT 'INFO',
+    `read` BOOLEAN DEFAULT FALSE,
+    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
