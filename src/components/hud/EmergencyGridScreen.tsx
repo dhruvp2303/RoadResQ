@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useRoadResQ } from '../../context/RoadResQContext';
 import { BreakdownType } from '../../types';
+import CommunityDrawer from '../app/CommunityDrawer';
 
 interface EmergencyCategory {
   id: string;
@@ -54,7 +55,7 @@ export const EmergencyGridScreen: React.FC<EmergencyGridScreenProps> = ({
   const { createEmergencyIncident, currentUser, triggerQuickSOS, addNotification, setRole } =
     useRoadResQ();
 
-  const [activeTab, setActiveTab] = useState<'community' | 'sharing' | 'message' | 'alert'>('community');
+  const [activeDrawerTab, setActiveDrawerTab] = useState<'community' | 'sharing' | 'message' | 'alert' | null>(null);
   const [address, setAddress] = useState('1234 Mission St');
   const [addressDetail, setAddressDetail] = useState('Apt #345B, 27th Floor · San Francisco, CA');
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -305,9 +306,9 @@ export const EmergencyGridScreen: React.FC<EmergencyGridScreenProps> = ({
         {/* TOP 4-TAB SEGMENTED CAPSULE BAR */}
         <div className="w-full flex items-center justify-between rounded-full bg-white/90 backdrop-blur-md p-1 border border-white/60 shadow-sm">
           <button
-            onClick={() => setActiveTab('community')}
+            onClick={() => setActiveDrawerTab('community')}
             className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-full text-[11px] font-bold transition-all ${
-              activeTab === 'community'
+              activeDrawerTab === 'community'
                 ? 'text-rose-600 bg-rose-50/80 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
@@ -319,9 +320,9 @@ export const EmergencyGridScreen: React.FC<EmergencyGridScreenProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('sharing')}
+            onClick={() => setActiveDrawerTab('sharing')}
             className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-full text-[11px] font-bold transition-all ${
-              activeTab === 'sharing'
+              activeDrawerTab === 'sharing'
                 ? 'text-rose-600 bg-rose-50/80 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
@@ -333,9 +334,9 @@ export const EmergencyGridScreen: React.FC<EmergencyGridScreenProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('message')}
+            onClick={() => setActiveDrawerTab('message')}
             className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-full text-[11px] font-bold transition-all ${
-              activeTab === 'message'
+              activeDrawerTab === 'message'
                 ? 'text-rose-600 bg-rose-50/80 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
@@ -347,9 +348,9 @@ export const EmergencyGridScreen: React.FC<EmergencyGridScreenProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('alert')}
+            onClick={() => setActiveDrawerTab('alert')}
             className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-full text-[11px] font-bold transition-all ${
-              activeTab === 'alert'
+              activeDrawerTab === 'alert'
                 ? 'text-rose-600 bg-rose-50/80 shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
@@ -508,6 +509,12 @@ export const EmergencyGridScreen: React.FC<EmergencyGridScreenProps> = ({
           </div>
         </div>
       )}
+
+      {/* COMMUNITY & TELEMATICS DRAWER */}
+      <CommunityDrawer
+        activeTab={activeDrawerTab}
+        onClose={() => setActiveDrawerTab(null)}
+      />
     </div>
   );
 };
