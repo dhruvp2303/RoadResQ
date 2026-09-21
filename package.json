@@ -5,7 +5,7 @@
   "description": "RoadResQ — India-First Emergency Roadside Assistance Platform",
   "scripts": {
     "dev": "npm --prefix frontend run dev",
-    "build": "npm --prefix frontend run build",
+    "build": "npm --prefix frontend run build && node -e \"const fs = require('fs'); fs.cpSync('frontend/dist', 'dist', {recursive: true, force: true});\"",
     "typecheck": "npm --prefix frontend run typecheck",
     "lint": "npm --prefix frontend run lint",
     "server": "npm --prefix backend start",
