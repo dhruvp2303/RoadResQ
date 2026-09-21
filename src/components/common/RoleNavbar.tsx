@@ -158,6 +158,17 @@ export const RoleNavbar: React.FC = () => {
             <span>{t.mechanicHub || 'Mechanic Hub'}</span>
           </button>
           <button
+            onClick={() => handleRoleChange('hud')}
+            className={`font-[Plus_Jakarta_Sans] px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 ${
+              role === 'hud'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm'
+                : 'text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50'
+            }`}
+          >
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>Radar & SOS HUD</span>
+          </button>
+          <button
             onClick={() => handleRoleChange('admin')}
             className={`font-[Plus_Jakarta_Sans] px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 ${
               role === 'admin'
@@ -411,6 +422,17 @@ export const RoleNavbar: React.FC = () => {
               }`}
             >
               {t.home || 'Home'}
+            </button>
+            <button
+              onClick={() => handleRoleChange('hud')}
+              className={`flex items-center justify-center gap-2 p-3 rounded-2xl text-xs font-bold ${
+                role === 'hud'
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-emerald-50 text-emerald-800'
+              }`}
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>Radar & SOS HUD</span>
             </button>
             <button
               onClick={() => handleRoleChange('user')}

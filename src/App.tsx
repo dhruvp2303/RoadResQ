@@ -9,6 +9,7 @@ import VehicleManagerModal from './components/common/VehicleManagerModal';
 import UserPortal from './components/user/UserPortal';
 import ProviderDashboard from './components/provider/ProviderDashboard';
 import AdminDashboard from './components/admin/AdminDashboard';
+import ModernEmergencyHUD from './components/hud/ModernEmergencyHUD';
 
 // Marketing & Platform Sections (Lingua Design System)
 import Hero from './components/Hero';
@@ -67,6 +68,7 @@ function MainContent() {
         {role === 'user' && <UserPortal />}
         {role === 'provider' && <ProviderDashboard />}
         {role === 'admin' && <AdminDashboard />}
+        {role === 'hud' && <ModernEmergencyHUD />}
       </main>
 
       {/* Global Modals & Demo Controls */}

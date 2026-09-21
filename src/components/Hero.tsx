@@ -100,8 +100,16 @@ export default function Hero() {
           className="flex flex-wrap gap-4 justify-center mt-8 items-center"
         >
           <button
+            onClick={() => setRole('hud')}
+            className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-[Plus_Jakarta_Sans] font-bold text-base px-7 py-3.5 rounded-full hover:opacity-95 transition-all shadow-md active:scale-[0.98] flex items-center gap-2"
+          >
+            <span className="flex h-2 w-2 rounded-full bg-white animate-ping" />
+            <span>Radar & SOS HUD</span>
+          </button>
+
+          <button
             onClick={() => setRole('user')}
-            className="bg-[hsl(var(--primary))] text-white font-[Plus_Jakarta_Sans] font-medium text-base px-8 py-3.5 rounded-full hover:opacity-90 transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center gap-2"
+            className="bg-[hsl(var(--primary))] text-white font-[Plus_Jakarta_Sans] font-medium text-base px-7 py-3.5 rounded-full hover:opacity-90 transition-all shadow-sm hover:shadow active:scale-[0.98] flex items-center gap-2"
           >
             <Zap className="h-4 w-4 text-[hsl(var(--accent))]" />
             <span>{t.requestHelp}</span>

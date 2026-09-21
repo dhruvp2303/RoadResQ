@@ -1,4 +1,4 @@
-export type Role = 'landing' | 'user' | 'provider' | 'admin';
+export type Role = 'landing' | 'user' | 'provider' | 'admin' | 'hud';
 
 export type IncidentStatus =
   | 'CREATED'
